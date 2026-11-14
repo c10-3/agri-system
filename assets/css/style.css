@@ -310,3 +310,15 @@ footer .text-muted, footer small { color: var(--ink) !important; }
     .stat-card { transition: none; }
     a:hover > .stat-card, a:focus-visible > .stat-card { transform: none; }
 }
+
+/* Navbar: keep Logout away from the window edge on mid-size screens */
+@media (min-width: 1200px) and (max-width: 1399.98px) {
+    .app-nav > .container {
+        max-width: 100%;
+        padding-left: 1.25rem;
+        padding-right: 1.25rem;
+    }
+    .app-nav .nav-link {
+        padding: .45rem .55rem;
+    }
+}
