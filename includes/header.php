@@ -3,6 +3,23 @@ require_once __DIR__ . '/auth.php';
 $pageTitle = $pageTitle ?? APP_NAME;
 $flash     = get_flash();
 $user      = current_user();
+
+$path = $_SERVER['SCRIPT_NAME'];
+$navItems = [
+    'Dashboard' => ['dashboard.php',                 '/dashboard.php',   'dashboard'],
+    'Farmers'   => ['modules/farmers/index.php',     '/modules/farmers/', 'farmers'],
+    'Farms'     => ['modules/farms/index.php',       '/modules/farms/',   'farms'],
+    'Crops'     => ['modules/crops/index.php',       '/modules/crops/',   'crops'],
+    'Plantings' => ['modules/plantings/index.php',   '/modules/plantings/', 'plantings'],
+    'Harvests'  => ['modules/harvests/index.php',    '/modules/harvests/', 'harvests'],
+    'Reports'   => ['reports/index.php',             '/reports/',         'reports'],
+];
+
+/* Which module is this page in? Drives the page accent color (see style.css). */
+$module = 'dashboard';
+foreach ($navItems as [$href, $match, $key]) {
+    if (strpos($path, $match) !== false) { $module = $key; break; }
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -13,23 +30,11 @@ $user      = current_user();
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= BASE_URL ?>/assets/css/style.css" rel="stylesheet">
 </head>
-<body>
+<body data-module="<?= e($module) ?>">
 <?php if ($user): ?>
-<?php
-$path = $_SERVER['SCRIPT_NAME'];
-$navItems = [
-    'Dashboard' => ['dashboard.php',                 '/dashboard.php'],
-    'Farmers'   => ['modules/farmers/index.php',     '/modules/farmers/'],
-    'Farms'     => ['modules/farms/index.php',       '/modules/farms/'],
-    'Crops'     => ['modules/crops/index.php',       '/modules/crops/'],
-    'Plantings' => ['modules/plantings/index.php',   '/modules/plantings/'],
-    'Harvests'  => ['modules/harvests/index.php',    '/modules/harvests/'],
-    'Reports'   => ['reports/index.php',             '/reports/'],
-];
-?>
-<nav class="navbar navbar-expand-xl navbar-dark bg-success shadow-sm">
+<nav class="navbar navbar-expand-xl navbar-dark app-nav shadow-sm">
     <div class="container">
-        <a class="navbar-brand fw-semibold" href="<?= BASE_URL ?>/dashboard.php"><?= e(APP_NAME) ?></a>
+        <a class="navbar-brand fw-semibold" href="<?= BASE_URL ?>/dashboard.php">🌾 <?= e(APP_NAME) ?></a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse"
                 data-bs-target="#mainNav" aria-controls="mainNav" aria-expanded="false"
                 aria-label="Toggle navigation">
@@ -37,16 +42,16 @@ $navItems = [
         </button>
         <div class="collapse navbar-collapse" id="mainNav">
             <ul class="navbar-nav me-auto">
-                <?php foreach ($navItems as $label => [$href, $match]): ?>
+                <?php foreach ($navItems as $label => [$href, $match, $key]): ?>
                     <li class="nav-item">
-                        <a class="nav-link text-white <?= strpos($path, $match) !== false ? 'active fw-semibold border-bottom border-2 border-white' : 'opacity-75' ?>"
-                           href="<?= BASE_URL . '/' . $href ?>"><?= e($label) ?></a>
+                        <a class="nav-link <?= $key === $module ? 'active fw-semibold' : '' ?>"
+                           href="<?= BASE_URL . '/' . $href ?>"><span class="nav-dot dot-<?= $key ?>"></span><?= e($label) ?></a>
                     </li>
                 <?php endforeach; ?>
             </ul>
             <div class="d-flex align-items-center gap-2 text-nowrap">
                 <span class="text-white"><?= e($user['full_name']) ?></span>
-                <span class="badge bg-light text-success"><?= e($user['role']) ?></span>
+                <span class="badge role-badge"><?= e($user['role']) ?></span>
                 <a class="btn btn-outline-light btn-sm ms-2" href="<?= BASE_URL ?>/logout.php">Logout</a>
             </div>
         </div>

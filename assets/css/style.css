@@ -1,34 +1,297 @@
-body { background-color: #f8f9fa; }
-.stat-card .display-6 { font-weight: 600; }
-.table thead th { white-space: nowrap; }
+@import url('https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700&display=swap');
 
-/* ===== Login / Sign-up pages ===== */
+/* =========================================================
+   Agriculture Information System: farm / nature theme
+   Palette: topsoil brown, leaf and meadow green, ripe wheat,
+   pumpkin orange, clear-sky blue on a warm wheat-cream page.
+   RULE: text is always DARK on a light or mid-tone background
+   (no white or pale text anywhere), so it stays easy to read.
+   Each module has its own natural color via body[data-module].
+   ========================================================= */
+:root {
+    --ink:        #2a1d0f;   /* main text: dark soil brown (14:1 on cream) */
+    --ink-soft:   #54402a;   /* secondary text (8:1 on cream) */
+    --page:       #f7f0dc;   /* page background: wheat cream */
+    --paper:      #fffcf2;   /* cards: warm off-white */
+    --straw:      #ecd186;   /* navbar: straw gold */
+    --straw-edge: #4a7c26;   /* navbar bottom edge: leaf green */
+    --line:       #dccfae;   /* soft borders: dried-grass tan */
+
+    /* One natural color per module */
+    --c-dashboard: #3f7d20;  /* leaf green */
+    --c-farmers:   #8a5a2b;  /* topsoil brown */
+    --c-farms:     #5f8f1f;  /* meadow green */
+    --c-crops:     #c2610f;  /* pumpkin orange */
+    --c-plantings: #2e7d57;  /* fern green */
+    --c-harvests:  #a8780a;  /* ripe wheat gold */
+    --c-reports:   #2f6f8f;  /* sky / irrigation blue */
+
+    --accent: var(--c-dashboard);
+
+    --bs-body-font-family: 'Figtree', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+    --bs-body-color: var(--ink);
+    --bs-secondary-color: var(--ink-soft);
+    --bs-emphasis-color: var(--ink);
+    --bs-border-color: var(--line);
+
+    --bs-primary-rgb: 63, 125, 32;
+    --bs-success-rgb: 45, 95, 28;
+}
+
+body[data-module="dashboard"] { --accent: var(--c-dashboard); }
+body[data-module="farmers"]   { --accent: var(--c-farmers); }
+body[data-module="farms"]     { --accent: var(--c-farms); }
+body[data-module="crops"]     { --accent: var(--c-crops); }
+body[data-module="plantings"] { --accent: var(--c-plantings); }
+body[data-module="harvests"]  { --accent: var(--c-harvests); }
+body[data-module="reports"]   { --accent: var(--c-reports); }
+
+body {
+    background-color: var(--page);
+    color: var(--ink);
+    --accent-soft: color-mix(in srgb, var(--accent) 13%, var(--paper));
+    --accent-mid:  color-mix(in srgb, var(--accent) 38%, var(--paper));
+    --accent-dark: color-mix(in srgb, var(--accent) 68%, black);   /* readable link / heading tint */
+}
+
+/* ===== Navbar: straw gold with dark text, leaf-green edge ===== */
+.app-nav {
+    background: var(--straw);
+    border-bottom: 4px solid var(--straw-edge);
+}
+.app-nav .navbar-brand { letter-spacing: .01em; color: var(--ink); font-weight: 700; }
+.app-nav .navbar-brand:hover { color: var(--ink); }
+.app-nav .nav-link {
+    color: var(--ink);
+    font-weight: 500;
+    border-radius: .5rem;
+    padding: .45rem .8rem;
+    margin: 0 .1rem;
+}
+.app-nav .nav-link:hover { color: var(--ink); background: rgba(42, 29, 15, .10); }
+.app-nav .nav-link.active { color: var(--ink); background: rgba(74, 124, 38, .30); box-shadow: inset 0 -3px 0 var(--straw-edge); }
+.app-nav .text-white { color: var(--ink) !important; font-weight: 600; }
+.app-nav .btn-outline-light {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: rgba(42, 29, 15, .12);
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: rgba(42, 29, 15, .2);
+    --bs-btn-active-border-color: var(--ink);
+    font-weight: 600;
+}
+/* hamburger icon on small screens: dark lines instead of white */
+.app-nav .navbar-toggler { border-color: rgba(42, 29, 15, .55); }
+.app-nav .navbar-toggler-icon {
+    --bs-navbar-toggler-icon-bg: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'%3e%3cpath stroke='%232a1d0f' stroke-linecap='round' stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/%3e%3c/svg%3e");
+}
+.nav-dot { display: none; }
+.role-badge { font-weight: 600; background: #e0b26a; color: var(--ink); border: 1px solid #8a5a2b; }
+
+/* ===== Page headings: bar carries the module color ===== */
+main h1.h3 {
+    border-left: 6px solid var(--accent);
+    padding-left: .75rem;
+    font-weight: 700;
+    color: var(--ink);
+}
+
+/* ===== Cards and tables ===== */
+.card {
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: .75rem;
+    color: var(--ink);
+}
+.card-header, .card-header.bg-white {
+    background: var(--accent-soft) !important;
+    border-bottom: 1px solid color-mix(in srgb, var(--accent) 30%, var(--line));
+    color: var(--ink);
+}
+.bg-white { background-color: var(--paper) !important; }
+.bg-light { background-color: var(--page) !important; }
+.table {
+    --bs-table-color: var(--ink);
+    --bs-table-bg: transparent;
+    --bs-table-border-color: var(--line);
+}
+.table thead th { white-space: nowrap; }
+.table-light, .table-success {
+    --bs-table-bg: var(--accent-mid);
+    --bs-table-color: var(--ink);
+    --bs-table-border-color: color-mix(in srgb, var(--accent) 35%, var(--line));
+}
+.table thead th { border-bottom: 2px solid var(--accent); }
+.table-hover > tbody > tr:hover > * { --bs-table-hover-bg: var(--accent-soft); --bs-table-hover-color: var(--ink); }
+.form-label { font-weight: 600; color: var(--ink); }
+.form-control, .form-select { background-color: #fff; border-color: #c9b98f; color: var(--ink); }
+.form-control::placeholder { color: #7d6a50; }
+
+/* ===== Buttons: tinted fill + dark bold text ===== */
+.btn-success {
+    --bs-btn-color: var(--ink);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-disabled-color: var(--ink);
+    --bs-btn-bg: var(--accent-mid);
+    --bs-btn-border-color: var(--accent);
+    --bs-btn-hover-bg: color-mix(in srgb, var(--accent) 58%, var(--paper));
+    --bs-btn-hover-border-color: var(--accent-dark);
+    --bs-btn-active-bg: color-mix(in srgb, var(--accent) 68%, var(--paper));
+    --bs-btn-active-border-color: var(--accent-dark);
+    --bs-btn-disabled-bg: var(--accent-mid);
+    --bs-btn-disabled-border-color: var(--accent);
+    --bs-btn-focus-shadow-rgb: 63, 125, 32;
+    font-weight: 700;
+    border-width: 2px;
+}
+.btn-outline-primary {
+    --bs-btn-color: var(--accent-dark);
+    --bs-btn-border-color: var(--accent);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: var(--accent-mid);
+    --bs-btn-hover-border-color: var(--accent-dark);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: color-mix(in srgb, var(--accent) 55%, var(--paper));
+    --bs-btn-active-border-color: var(--accent-dark);
+    --bs-btn-focus-shadow-rgb: 63, 125, 32;
+    font-weight: 600;
+}
+.btn-outline-secondary {
+    --bs-btn-color: var(--ink-soft);
+    --bs-btn-border-color: #a8956c;
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: #eadfc0;
+    --bs-btn-hover-border-color: #8a7650;
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: #e0d2ac;
+    --bs-btn-active-border-color: #8a7650;
+}
+.btn-outline-dark {
+    --bs-btn-color: var(--ink);
+    --bs-btn-border-color: var(--ink);
+    --bs-btn-hover-color: var(--ink);
+    --bs-btn-hover-bg: #eadfc0;
+    --bs-btn-hover-border-color: var(--ink);
+    --bs-btn-active-color: var(--ink);
+    --bs-btn-active-bg: #e0d2ac;
+    --bs-btn-active-border-color: var(--ink);
+}
+.btn-outline-danger {
+    --bs-btn-color: #9b1c12;
+    --bs-btn-border-color: #9b1c12;
+    --bs-btn-hover-color: #3d0a05;
+    --bs-btn-hover-bg: #f4c4bc;
+    --bs-btn-hover-border-color: #9b1c12;
+    --bs-btn-active-color: #3d0a05;
+    --bs-btn-active-bg: #eeaca2;
+    --bs-btn-active-border-color: #9b1c12;
+}
+.form-control:focus, .form-select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.form-check-input:checked { background-color: var(--accent); border-color: var(--accent); }
+.pagination {
+    --bs-pagination-color: var(--accent-dark);
+    --bs-pagination-bg: var(--paper);
+    --bs-pagination-border-color: var(--line);
+    --bs-pagination-hover-color: var(--ink);
+    --bs-pagination-hover-bg: var(--accent-soft);
+    --bs-pagination-active-color: var(--ink);
+    --bs-pagination-active-bg: var(--accent-mid);
+    --bs-pagination-active-border-color: var(--accent);
+    --bs-pagination-focus-box-shadow: 0 0 0 .2rem color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.pagination .page-item.active .page-link { font-weight: 700; }
+main a:not(.btn):not(.page-link) { color: var(--accent-dark); }
+
+/* ===== Badges: soft earthy fill, dark text ===== */
+.badge.bg-secondary, .badge.text-bg-secondary { background-color: #e6d5b0 !important; color: #3b2a17 !important; border: 1px solid #b59a62; }
+.badge.bg-primary,   .badge.text-bg-primary   { background-color: #cfe6aa !important; color: #1c3a0c !important; border: 1px solid #6a9a3a; }
+.badge.bg-success,   .badge.text-bg-success   { background-color: #a9d49a !important; color: #123006 !important; border: 1px solid #3f7d20; }
+.badge.bg-warning,   .badge.text-bg-warning   { background-color: #f6d160 !important; color: #3a2800 !important; border: 1px solid #a8780a; }
+.badge.bg-danger,    .badge.text-bg-danger    { background-color: #f4bdb3 !important; color: #5a130b !important; border: 1px solid #b3382c; }
+.badge.bg-dark,      .badge.text-bg-dark      { background-color: #ddd0b6 !important; color: var(--ink) !important; border: 1px solid #8a7650; }
+
+/* ===== Alerts ===== */
+.alert-success { --bs-alert-color: #173a0b; --bs-alert-bg: #dcefc4; --bs-alert-border-color: #9fcb76; }
+.alert-warning { --bs-alert-color: #4a3200; --bs-alert-bg: #fbeab0; --bs-alert-border-color: #e3c25a; }
+.alert-danger  { --bs-alert-color: #5a130b; --bs-alert-bg: #f9d9d3; --bs-alert-border-color: #e39a8f; }
+
+/* ===== Progress bars (reports) ===== */
+.progress { background-color: #e8dcba; }
+.progress-bar.bg-success { background-color: var(--accent) !important; }
+
+/* ===== Dashboard: stat cards (one natural color per module) ===== */
+.stat-farmers   { --accent: var(--c-farmers); }
+.stat-farms     { --accent: var(--c-farms); }
+.stat-crops     { --accent: var(--c-crops); }
+.stat-plantings { --accent: var(--c-plantings); }
+.stat-harvests  { --accent: var(--c-harvests); }
+
+.stat-card {
+    --accent-soft: color-mix(in srgb, var(--accent) 20%, var(--paper));
+    --accent-dark: color-mix(in srgb, var(--accent) 62%, black);
+    border-bottom: 5px solid var(--accent);
+    transition: box-shadow .15s ease, transform .15s ease;
+}
+a:hover > .stat-card, a:focus-visible > .stat-card {
+    box-shadow: 0 .4rem 1rem rgba(74, 52, 20, .20) !important;
+    transform: translateY(-2px);
+}
+.stat-icon {
+    width: 2.9rem;
+    height: 2.9rem;
+    flex: none;
+    font-size: 1.45rem;
+    border-radius: .75rem;
+    background: var(--accent-soft);
+    border: 1px solid color-mix(in srgb, var(--accent) 40%, var(--paper));
+}
+.stat-card .stat-label { color: var(--ink-soft); font-size: .95rem; font-weight: 600; }
+.stat-card .stat-number { font-size: 1.9rem; font-weight: 700; line-height: 1.1; color: var(--ink); }
+
+/* ===== Dashboard: harvest totals (light fills, dark text) ===== */
+.kpi { color: var(--ink); border-radius: .75rem; border: 1px solid var(--line); border-left-width: 10px; }
+.kpi-kg    { background: #d6eab4; border-left-color: #3f7d20; }   /* fresh-cut grass */
+.kpi-value { background: #f7df93; border-left-color: #a8780a; }   /* ripe wheat */
+.kpi .kpi-label { color: var(--ink); font-weight: 600; }
+.kpi .kpi-number { font-size: 2.4rem; font-weight: 700; line-height: 1.1; color: var(--ink); }
+
+/* ===== Login / Sign-up pages: sky, wheat horizon, crop rows ===== */
 body.auth-page {
     min-height: 100vh;
-    background: linear-gradient(135deg, #14532d 0%, #198754 55%, #6fbf8b 100%);
+    background:
+        linear-gradient(to bottom, #cfe8f2 0%, #f7efc9 46%, rgba(247, 239, 201, 0) 46%),
+        repeating-linear-gradient(172deg, #9cc863 0 26px, #86b650 26px 52px);
+    background-attachment: fixed;
 }
-
-.auth-card {
-    max-width: 420px;
-    width: 100%;
-    border: 0;
-    border-radius: 1rem;
-}
-
-.auth-logo {
-    width: 64px;
-    height: 64px;
-    font-size: 2rem;
-    background: #e8f5ee;
-    border-radius: 50%;
-}
-
+.auth-card { max-width: 420px; width: 100%; border: 1px solid var(--line); border-radius: 1rem; background: var(--paper); }
+.auth-logo { width: 64px; height: 64px; font-size: 2rem; background: #f5e0a0; border: 2px solid #a8780a; border-radius: 50%; }
 .auth-page .form-control:focus {
-    border-color: #198754;
-    box-shadow: 0 0 0 .2rem rgba(25, 135, 84, .2);
+    border-color: #3f7d20;
+    box-shadow: 0 0 0 .2rem rgba(63, 125, 32, .25);
 }
+.auth-page .btn-success { padding: .65rem; font-weight: 700; }
+.auth-page a.text-success { color: #2d5f1c !important; }
 
-.auth-page .btn-success {
-    padding: .65rem;
-    font-weight: 600;
+/* ===== Reports ===== */
+body[data-module="reports"] .text-success { color: var(--accent-dark) !important; }
+.text-success { color: #2d5f1c !important; }
+.text-danger  { color: #a3241a !important; }
+
+/* ===== Footer ===== */
+footer.border-top {
+    background: #efe2b8;
+    border-top: 3px solid var(--straw-edge) !important;
+    color: var(--ink) !important;
+}
+footer .text-muted, footer small { color: var(--ink) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+    .stat-card { transition: none; }
+    a:hover > .stat-card, a:focus-visible > .stat-card { transform: none; }
 }

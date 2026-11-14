@@ -8,11 +8,11 @@ $pageTitle = 'Dashboard';
 
 /* ---- Summary cards (counts read live from the database) ---- */
 $cards = [
-    'Farmers'   => ['farmer',   'modules/farmers/index.php'],
-    'Farms'     => ['farm',     'modules/farms/index.php'],
-    'Crops'     => ['crop',     'modules/crops/index.php'],
-    'Plantings' => ['planting', 'modules/plantings/index.php'],
-    'Harvests'  => ['harvest',  'modules/harvests/index.php'],
+    'Farmers'   => ['farmer',   'modules/farmers/index.php',   'farmers',   '🧑‍🌾'],
+    'Farms'     => ['farm',     'modules/farms/index.php',     'farms',     '🏡'],
+    'Crops'     => ['crop',     'modules/crops/index.php',     'crops',     '🌽'],
+    'Plantings' => ['planting', 'modules/plantings/index.php', 'plantings', '🌱'],
+    'Harvests'  => ['harvest',  'modules/harvests/index.php',  'harvests',  '🧺'],
 ];
 
 /* ---- Harvest totals ---- */
@@ -30,6 +30,18 @@ $statusRows = db_rows(
      FROM planting
      GROUP BY 1
      ORDER BY total DESC, status"
+);
+
+/* ---- Harvest quantity by crop (top 6) ---- */
+$cropRows = db_rows(
+    "SELECT c.crop_name, COALESCE(SUM(h.quantity_kg), 0) AS total_kg
+     FROM harvest h
+     JOIN planting p ON p.planting_id = h.planting_id
+     JOIN crop c     ON c.crop_id     = p.crop_id
+     WHERE p.status IS DISTINCT FROM 'Failed'
+     GROUP BY c.crop_name
+     ORDER BY total_kg DESC
+     LIMIT 6"
 );
 
 /* ---- Recent plantings (joined with farm, farmer and crop) ---- */
@@ -70,31 +82,34 @@ function status_badge(string $status): string
 function status_color(string $status): string
 {
     return match (strtolower($status)) {
-        'planted'           => '#6c757d',
-        'growing'           => '#0d6efd',
-        'ready for harvest' => '#ffc107',
-        'harvested'         => '#198754',
-        'failed'            => '#dc3545',
-        default             => '#212529',
+        'planted'           => '#8a5a2b',
+        'growing'           => '#5f9a2c',
+        'ready for harvest' => '#e0a400',
+        'harvested'         => '#2f5d1a',
+        'failed'            => '#b3382c',
+        default             => '#6b5a42',
     };
 }
 
 include __DIR__ . '/includes/header.php';
 ?>
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h3 class="mb-0">Dashboard</h3>
+    <h1 class="h3 mb-0">Dashboard</h1>
     <span class="text-muted small">Live data from the database</span>
 </div>
 
-<!-- Summary cards: each one links to its module -->
+<!-- Summary cards: each one links to its module and has its own color -->
 <div class="row g-3 mb-4">
-<?php foreach ($cards as $label => [$table, $link]): $n = safe_count($table); ?>
+<?php foreach ($cards as $label => [$table, $link, $key, $icon]): $n = safe_count($table); ?>
     <div class="col-6 col-md-4 col-lg">
         <a href="<?= BASE_URL . '/' . $link ?>" class="text-decoration-none">
-            <div class="card stat-card shadow-sm text-center h-100">
-                <div class="card-body">
-                    <div class="text-muted"><?= e($label) ?></div>
-                    <div class="display-6"><?= $n === null ? 'n/a' : number_format($n) ?></div>
+            <div class="card stat-card stat-<?= $key ?> shadow-sm h-100">
+                <div class="card-body d-flex align-items-center gap-3">
+                    <div class="stat-icon d-flex align-items-center justify-content-center" aria-hidden="true"><?= $icon ?></div>
+                    <div>
+                        <div class="stat-label"><?= e($label) ?></div>
+                        <div class="stat-number"><?= $n === null ? 'n/a' : number_format($n) ?></div>
+                    </div>
                 </div>
             </div>
         </a>
@@ -105,18 +120,18 @@ include __DIR__ . '/includes/header.php';
 <!-- Harvest totals -->
 <div class="row g-3 mb-4">
     <div class="col-12 col-md-6">
-        <div class="card shadow-sm h-100">
+        <div class="card kpi kpi-kg shadow-sm h-100">
             <div class="card-body">
-                <div class="text-muted">Total Harvested Quantity</div>
-                <div class="display-6"><?= number_format((float) $totals['total_kg'], 2) ?> <small class="fs-5">kg</small></div>
+                <div class="kpi-label">Total harvested quantity</div>
+                <div class="kpi-number"><?= number_format((float) $totals['total_kg'], 2) ?> <small class="fs-5">kg</small></div>
             </div>
         </div>
     </div>
     <div class="col-12 col-md-6">
-        <div class="card shadow-sm h-100">
+        <div class="card kpi kpi-value shadow-sm h-100">
             <div class="card-body">
-                <div class="text-muted">Estimated Harvest Value</div>
-                <div class="display-6">₱<?= number_format((float) $totals['total_value'], 2) ?></div>
+                <div class="kpi-label">Estimated harvest value</div>
+                <div class="kpi-number">₱<?= number_format((float) $totals['total_value'], 2) ?></div>
             </div>
         </div>
     </div>
@@ -126,10 +141,10 @@ include __DIR__ . '/includes/header.php';
     <!-- Plantings by status -->
     <div class="col-12 col-lg-5">
         <div class="card shadow-sm h-100">
-            <div class="card-header bg-white fw-semibold">Plantings by Status</div>
+            <div class="card-header bg-white fw-semibold">Plantings by status</div>
             <div class="card-body">
                 <?php if (!$statusRows): ?>
-                    <p class="text-muted mb-0">No planting records yet.</p>
+                    <p class="text-muted mb-0">No plantings yet. Add one from the Plantings page.</p>
                 <?php else: ?>
                     <div style="max-height:220px">
                         <canvas id="statusChart" height="220" aria-label="Plantings by status chart" role="img"></canvas>
@@ -150,42 +165,56 @@ include __DIR__ . '/includes/header.php';
         </div>
     </div>
 
-    <!-- Recent plantings -->
+    <!-- Harvest by crop -->
     <div class="col-12 col-lg-7">
         <div class="card shadow-sm h-100">
-            <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <span class="fw-semibold">Recent Plantings</span>
-                <a href="<?= BASE_URL ?>/modules/plantings/index.php" class="small">View all</a>
-            </div>
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr><th>Farm</th><th>Crop</th><th>Planted</th><th>Expected Harvest</th><th>Status</th></tr>
-                    </thead>
-                    <tbody>
-                    <?php if (!$recentPlantings): ?>
-                        <tr><td colspan="5" class="text-center text-muted py-3">No planting records yet.</td></tr>
-                    <?php endif; ?>
-                    <?php foreach ($recentPlantings as $r): ?>
-                        <tr>
-                            <td><?= e($r['farm_name']) ?></td>
-                            <td><?= e($r['crop_name']) ?><?= !empty($r['variety']) ? ' <span class="text-muted small">(' . e($r['variety']) . ')</span>' : '' ?></td>
-                            <td><?= e(fmt_date($r['planting_date'])) ?></td>
-                            <td><?= e(fmt_date($r['expected_harvest_date'])) ?></td>
-                            <td><span class="badge bg-<?= status_badge((string) $r['status']) ?>"><?= e($r['status'] ?: 'Unspecified') ?></span></td>
-                        </tr>
-                    <?php endforeach; ?>
-                    </tbody>
-                </table>
+            <div class="card-header bg-white fw-semibold">Harvest by crop (kg)</div>
+            <div class="card-body">
+                <?php if (!$cropRows): ?>
+                    <p class="text-muted mb-0">No harvests yet. Record one from the Harvests page.</p>
+                <?php else: ?>
+                    <div style="position:relative;height:300px">
+                        <canvas id="cropChart" aria-label="Harvest quantity by crop chart" role="img"></canvas>
+                    </div>
+                <?php endif; ?>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Recent plantings -->
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-white d-flex justify-content-between align-items-center">
+        <span class="fw-semibold">Recent plantings</span>
+        <a href="<?= BASE_URL ?>/modules/plantings/index.php" class="small">View all</a>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr><th>Farm</th><th>Crop</th><th>Planted</th><th>Expected Harvest</th><th>Status</th></tr>
+            </thead>
+            <tbody>
+            <?php if (!$recentPlantings): ?>
+                <tr><td colspan="5" class="text-center text-muted py-3">No planting records yet.</td></tr>
+            <?php endif; ?>
+            <?php foreach ($recentPlantings as $r): ?>
+                <tr>
+                    <td><?= e($r['farm_name']) ?></td>
+                    <td><?= e($r['crop_name']) ?><?= !empty($r['variety']) ? ' <span class="text-muted small">(' . e($r['variety']) . ')</span>' : '' ?></td>
+                    <td><?= e(fmt_date($r['planting_date'])) ?></td>
+                    <td><?= e(fmt_date($r['expected_harvest_date'])) ?></td>
+                    <td><span class="badge bg-<?= status_badge((string) $r['status']) ?>"><?= e($r['status'] ?: 'Unspecified') ?></span></td>
+                </tr>
+            <?php endforeach; ?>
+            </tbody>
+        </table>
     </div>
 </div>
 
 <!-- Recent harvests -->
 <div class="card shadow-sm mb-4">
     <div class="card-header bg-white d-flex justify-content-between align-items-center">
-        <span class="fw-semibold">Recent Harvests</span>
+        <span class="fw-semibold">Recent harvests</span>
         <a href="<?= BASE_URL ?>/modules/harvests/index.php" class="small">View all</a>
     </div>
     <div class="table-responsive">
@@ -211,9 +240,11 @@ include __DIR__ . '/includes/header.php';
     </div>
 </div>
 
-<?php if ($statusRows): ?>
+<?php if ($statusRows || $cropRows): ?>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
+    Chart.defaults.font.family = "'Figtree', system-ui, sans-serif";
+<?php if ($statusRows): ?>
     new Chart(document.getElementById('statusChart'), {
         type: 'doughnut',
         data: {
@@ -225,6 +256,27 @@ include __DIR__ . '/includes/header.php';
         },
         options: { maintainAspectRatio: false, plugins: { legend: { position: 'bottom' } } }
     });
+<?php endif; ?>
+<?php if ($cropRows): ?>
+    new Chart(document.getElementById('cropChart'), {
+        type: 'bar',
+        data: {
+            labels: <?= json_encode(array_column($cropRows, 'crop_name'), JSON_HEX_TAG | JSON_HEX_AMP) ?>,
+            datasets: [{
+                label: 'Harvested (kg)',
+                data: <?= json_encode(array_map('floatval', array_column($cropRows, 'total_kg'))) ?>,
+                backgroundColor: ['#3f7d20', '#c2610f', '#a8780a', '#2e7d57', '#8a5a2b', '#7fae3c'],
+                borderRadius: 6
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { x: { beginAtZero: true, grid: { color: '#e6dab8' } }, y: { grid: { display: false } } }
+        }
+    });
+<?php endif; ?>
 </script>
 <?php endif; ?>
 
