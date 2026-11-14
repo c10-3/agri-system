@@ -21,15 +21,18 @@ $totals = db_rows(
             COALESCE(SUM(h.quantity_kg * h.selling_price_per_kg), 0) AS total_value
      FROM harvest h
      JOIN planting p ON p.planting_id = h.planting_id
-     WHERE p.status IS DISTINCT FROM 'Failed'"
+     JOIN planting_status ps ON ps.status_id = p.status_id
+     WHERE ps.status_name <> 'Failed'"
 )[0] ?? ['total_kg' => 0, 'total_value' => 0];
 
 /* ---- Plantings by status ---- */
 $statusRows = db_rows(
-    "SELECT COALESCE(NULLIF(TRIM(status), ''), 'Unspecified') AS status, COUNT(*) AS total
-     FROM planting
-     GROUP BY 1
-     ORDER BY total DESC, status"
+    "SELECT ps.status_name AS status, COUNT(p.planting_id) AS total
+     FROM planting_status ps
+     LEFT JOIN planting p ON p.status_id = ps.status_id
+     GROUP BY ps.status_id, ps.status_name
+     HAVING COUNT(p.planting_id) > 0
+     ORDER BY total DESC, ps.status_name"
 );
 
 /* ---- Harvest quantity by crop (top 6) ---- */
@@ -38,7 +41,8 @@ $cropRows = db_rows(
      FROM harvest h
      JOIN planting p ON p.planting_id = h.planting_id
      JOIN crop c     ON c.crop_id     = p.crop_id
-     WHERE p.status IS DISTINCT FROM 'Failed'
+     JOIN planting_status ps ON ps.status_id = p.status_id
+     WHERE ps.status_name <> 'Failed'
      GROUP BY c.crop_name
      ORDER BY total_kg DESC
      LIMIT 6"
@@ -46,23 +50,25 @@ $cropRows = db_rows(
 
 /* ---- Recent plantings (joined with farm, farmer and crop) ---- */
 $recentPlantings = db_rows(
-    "SELECT p.planting_id, p.planting_date, p.expected_harvest_date, p.status,
+    "SELECT p.planting_id, p.planting_date, p.expected_harvest_date, ps.status_name AS status,
             f.farm_name, c.crop_name, c.variety
      FROM planting p
      JOIN farm f ON f.farm_id = p.farm_id
      JOIN crop c ON c.crop_id = p.crop_id
+     JOIN planting_status ps ON ps.status_id = p.status_id
      ORDER BY p.planting_date DESC, p.planting_id DESC
      LIMIT 5"
 );
 
 /* ---- Recent harvests (joined with planting, farm and crop) ---- */
 $recentHarvests = db_rows(
-    "SELECT h.harvest_id, h.harvest_date, h.quantity_kg, h.quality_grade,
+    "SELECT h.harvest_id, h.harvest_date, h.quantity_kg, qg.grade_name AS quality_grade,
             f.farm_name, c.crop_name
      FROM harvest h
      JOIN planting p ON p.planting_id = h.planting_id
      JOIN farm f     ON f.farm_id     = p.farm_id
      JOIN crop c     ON c.crop_id     = p.crop_id
+     LEFT JOIN quality_grade qg ON qg.grade_id = h.grade_id
      ORDER BY h.harvest_date DESC, h.harvest_id DESC
      LIMIT 5"
 );
@@ -280,4 +286,4 @@ include __DIR__ . '/includes/header.php';
 </script>
 <?php endif; ?>
 
-<?php include __DIR__ . '/includes/footer.php'; ?>
+<?php include __DIR__ . '/includes/footer.php'; ?> 

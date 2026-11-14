@@ -61,6 +61,20 @@ body {
 }
 .app-nav .navbar-brand { letter-spacing: .01em; color: var(--ink); font-weight: 700; }
 .app-nav .navbar-brand:hover { color: var(--ink); }
+/* small screens: let the name wrap so it fits beside the menu button */
+.app-nav .navbar-brand {
+    white-space: normal;
+    flex: 1 1 0;
+    min-width: 0;
+    line-height: 1.2;
+    margin-right: .5rem;
+}
+@media (max-width: 575.98px) {
+    .app-nav .navbar-brand { font-size: 1.05rem; }
+}
+@media (min-width: 1200px) {
+    .app-nav .navbar-brand { flex: 0 0 auto; white-space: nowrap; }
+}
 .app-nav .nav-link {
     color: var(--ink);
     font-weight: 500;
