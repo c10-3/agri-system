@@ -1,0 +1,5 @@
+Options -Indexes
+
+<FilesMatch "^(\.env.*|\.gitignore|.*\.sql)$">
+    Require all denied
+</FilesMatch>

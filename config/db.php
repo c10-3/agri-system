@@ -1,13 +1,16 @@
 <?php
 require_once __DIR__ . '/config.php';
 
-$env = parse_ini_file(__DIR__ . '/../.env');
-
 try {
     $pdo = new PDO(
-        "pgsql:host={$env['DB_HOST']};port={$env['DB_PORT']};dbname={$env['DB_NAME']};sslmode=require",
-        $env['DB_USER'],
-        $env['DB_PASSWORD'],
+        sprintf(
+            'pgsql:host=%s;port=%s;dbname=%s;sslmode=require',
+            DB_CONFIG['host'],
+            DB_CONFIG['port'],
+            DB_CONFIG['name']
+        ),
+        DB_CONFIG['user'],
+        DB_CONFIG['pass'],
         [
             PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,

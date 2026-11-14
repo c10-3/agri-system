@@ -61,13 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <input type="password" class="form-control form-control-lg" id="password" name="password" required>
           </div>
           <button type="submit" class="btn btn-success w-100">Log in</button>
-        </form>
-
-        <hr class="my-4">
-        <p class="text-center text-muted mb-0">
-          Don't have an account?
-          <a href="register.php" class="text-success fw-semibold text-decoration-none">Sign up</a>
-        </p>
+        </form> 
       </div>
     </div>
   </div>

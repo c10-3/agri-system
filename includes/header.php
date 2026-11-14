@@ -20,6 +20,9 @@ $module = 'dashboard';
 foreach ($navItems as [$href, $match, $key]) {
     if (strpos($path, $match) !== false) { $module = $key; break; }
 }
+if (strpos($path, '/users.php') !== false || strpos($path, '/register.php') !== false) {
+    $module = 'users';
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -48,6 +51,12 @@ foreach ($navItems as [$href, $match, $key]) {
                            href="<?= BASE_URL . '/' . $href ?>"><span class="nav-dot dot-<?= $key ?>"></span><?= e($label) ?></a>
                     </li>
                 <?php endforeach; ?>
+                <?php if (is_admin()): ?>
+                    <li class="nav-item">
+                        <a class="nav-link text-nowrap <?= $module === 'users' ? 'active fw-semibold' : '' ?>"
+                           href="<?= BASE_URL ?>/users.php">Users</a>
+                    </li>
+                <?php endif; ?>
             </ul>
             <div class="d-flex align-items-center gap-2 text-nowrap">
                 <span class="text-white"><?= e($user['full_name']) ?></span>

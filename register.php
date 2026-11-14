@@ -10,10 +10,9 @@ if (!$bootstrap) {
     require_role([ROLE_ADMIN]);
 }
 
-$roles = $pdo->query('SELECT role_id, role_name FROM role ORDER BY role_id')->fetchAll();
+$roles  = $pdo->query('SELECT role_id, role_name FROM role ORDER BY role_id')->fetchAll();
 $errors = [];
-$success = '';
-$old = ['username' => '', 'full_name' => '', 'role_id' => ''];
+$old    = ['username' => '', 'full_name' => '', 'role_id' => ''];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $old['username']  = trim($_POST['username'] ?? '');
@@ -72,77 +71,72 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: login.php');
                 exit;
             }
-            $success = 'User "' . $old['username'] . '" created successfully.';
-            $old = ['username' => '', 'full_name' => '', 'role_id' => ''];
-        } catch (PDOException $e) {
-            error_log('Register failed: ' . $e->getMessage());
+            set_flash('success', 'User "' . $old['username'] . '" created successfully.');
+            redirect('users.php');
+        } catch (PDOException $ex) {
+            error_log('Register failed: ' . $ex->getMessage());
             $errors[] = 'Could not create the user. Please try again.';
         }
     }
 }
+
+$pageTitle = $bootstrap ? 'Create Administrator' : 'Add User';
+include __DIR__ . '/includes/header.php';
 ?>
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Register User - Agriculture Information System</title>
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-</head>
-<body class="bg-light">
-  <div class="container py-5" style="max-width: 480px;">
-    <div class="card shadow-sm">
-      <div class="card-body p-4">
-        <h4 class="mb-1"><?= $bootstrap ? 'Create Administrator Account' : 'Register New User' ?></h4>
-        <p class="text-muted"><?= $bootstrap ? 'No users exist yet. This first account will be the Administrator.' : 'Administrators only.' ?></p>
+<h1 class="h3 mb-3"><?= $bootstrap ? 'Create Administrator Account' : 'Add User' ?></h1>
 
-        <?php if ($success): ?><div class="alert alert-success"><?= htmlspecialchars($success) ?></div><?php endif; ?>
-        <?php if ($errors): ?>
-          <div class="alert alert-danger"><ul class="mb-0">
-            <?php foreach ($errors as $e): ?><li><?= htmlspecialchars($e) ?></li><?php endforeach; ?>
-          </ul></div>
-        <?php endif; ?>
+<?php if ($bootstrap): ?>
+    <div class="alert alert-info">No users exist yet. This first account will be the Administrator.</div>
+<?php endif; ?>
 
-        <form method="post" novalidate>
-          <?= csrf_field() ?>
-          <div class="mb-3">
-            <label class="form-label" for="full_name">Full name</label>
-            <input class="form-control" id="full_name" name="full_name" value="<?= htmlspecialchars($old['full_name']) ?>" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="username">Username</label>
-            <input class="form-control" id="username" name="username" value="<?= htmlspecialchars($old['username']) ?>" required>
-          </div>
-          <?php if (!$bootstrap): ?>
-          <div class="mb-3">
-            <label class="form-label" for="role_id">Role</label>
-            <select class="form-select" id="role_id" name="role_id" required>
-              <option value="">-- Select role --</option>
-              <?php foreach ($roles as $r): ?>
-                <option value="<?= (int) $r['role_id'] ?>" <?= (string) $old['role_id'] === (string) $r['role_id'] ? 'selected' : '' ?>>
-                  <?= htmlspecialchars($r['role_name']) ?>
-                </option>
-              <?php endforeach; ?>
-            </select>
-          </div>
-          <?php endif; ?>
-          <div class="mb-3">
-            <label class="form-label" for="password">Password</label>
-            <input type="password" class="form-control" id="password" name="password" required>
-          </div>
-          <div class="mb-3">
-            <label class="form-label" for="confirm_password">Confirm password</label>
-            <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
-          </div>
-          <button class="btn btn-success w-100" type="submit">Create account</button>
-        </form>
-        <?php if (!$bootstrap): ?>
-          <a href="dashboard.php" class="d-block text-center mt-3">Back to Dashboard</a>
-        <?php else: ?>
-          <a href="login.php" class="d-block text-center mt-3">Back to Login</a>
-        <?php endif; ?>
-      </div>
-    </div>
-  </div>
-</body>
-</html>
+<?php if ($errors): ?>
+    <div class="alert alert-danger"><ul class="mb-0">
+        <?php foreach ($errors as $msg): ?><li><?= e($msg) ?></li><?php endforeach; ?>
+    </ul></div>
+<?php endif; ?>
+
+<div class="card shadow-sm"><div class="card-body">
+    <form method="post" novalidate>
+        <?= csrf_field() ?>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <label class="form-label" for="full_name">Full name <span class="text-danger">*</span></label>
+                <input class="form-control" id="full_name" name="full_name" maxlength="100"
+                       value="<?= e($old['full_name']) ?>" required>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="username">Username <span class="text-danger">*</span></label>
+                <input class="form-control" id="username" name="username" maxlength="50"
+                       value="<?= e($old['username']) ?>" required>
+            </div>
+            <?php if (!$bootstrap): ?>
+            <div class="col-md-6">
+                <label class="form-label" for="role_id">Role <span class="text-danger">*</span></label>
+                <select class="form-select" id="role_id" name="role_id" required>
+                    <option value="">-- Select role --</option>
+                    <?php foreach ($roles as $r): ?>
+                        <option value="<?= (int) $r['role_id'] ?>" <?= (string) $old['role_id'] === (string) $r['role_id'] ? 'selected' : '' ?>>
+                            <?= e($r['role_name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div class="col-md-6"></div>
+            <?php endif; ?>
+            <div class="col-md-6">
+                <label class="form-label" for="password">Password <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" id="password" name="password" required>
+                <div class="form-text">At least 8 characters.</div>
+            </div>
+            <div class="col-md-6">
+                <label class="form-label" for="confirm_password">Confirm password <span class="text-danger">*</span></label>
+                <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+            </div>
+        </div>
+        <div class="mt-4 d-flex gap-2">
+            <button class="btn btn-success" type="submit">Create Account</button>
+            <a href="<?= $bootstrap ? 'login.php' : 'users.php' ?>" class="btn btn-outline-secondary">Cancel</a>
+        </div>
+    </form>
+</div></div>
+<?php include __DIR__ . '/includes/footer.php'; ?>

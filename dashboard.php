@@ -17,12 +17,9 @@ $cards = [
 
 /* ---- Harvest totals ---- */
 $totals = db_rows(
-    "SELECT COALESCE(SUM(h.quantity_kg), 0) AS total_kg,
-            COALESCE(SUM(h.quantity_kg * h.selling_price_per_kg), 0) AS total_value
-     FROM harvest h
-     JOIN planting p ON p.planting_id = h.planting_id
-     JOIN planting_status ps ON ps.status_id = p.status_id
-     WHERE ps.status_name <> 'Failed'"
+    "SELECT COALESCE(SUM(quantity_kg), 0) AS total_kg,
+            COALESCE(SUM(quantity_kg * selling_price_per_kg), 0) AS total_value
+     FROM harvest"
 )[0] ?? ['total_kg' => 0, 'total_value' => 0];
 
 /* ---- Plantings by status ---- */
@@ -41,8 +38,6 @@ $cropRows = db_rows(
      FROM harvest h
      JOIN planting p ON p.planting_id = h.planting_id
      JOIN crop c     ON c.crop_id     = p.crop_id
-     JOIN planting_status ps ON ps.status_id = p.status_id
-     WHERE ps.status_name <> 'Failed'
      GROUP BY c.crop_name
      ORDER BY total_kg DESC
      LIMIT 6"

@@ -294,6 +294,7 @@ body.auth-page {
 
 /* ===== Reports ===== */
 body[data-module="reports"] .text-success { color: var(--accent-dark) !important; }
+body[data-module="users"]     { --accent: var(--c-farmers); }
 .text-success { color: #2d5f1c !important; }
 .text-danger  { color: #a3241a !important; }
 
