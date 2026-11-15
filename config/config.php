@@ -6,7 +6,8 @@ define('APP_NAME', 'Agri-System');
 // The folder the site lives in. Local XAMPP uses the default below;
 // a host that serves the site from its own address sets APP_BASE_URL to /
 $baseUrl = getenv('APP_BASE_URL');
-define('BASE_URL', $baseUrl !== false && $baseUrl !== '' ? $baseUrl : '/agriculture-system/');
+$baseUrl = ($baseUrl !== false && $baseUrl !== '') ? $baseUrl : '/agri-system';
+define('BASE_URL', rtrim('/' . trim($baseUrl, '/'), '/'));
 
 if (session_status() === PHP_SESSION_NONE) {
     // True when the visitor reached the site over HTTPS (also behind a hosting proxy)
@@ -18,7 +19,6 @@ if (session_status() === PHP_SESSION_NONE) {
         'path'     => '/',
         'secure'   => $isHttps,
         'httponly' => true,
-        'secure'   => !empty($_SERVER['HTTPS']) || ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? '') === 'https',
         'samesite' => 'Lax',
     ]);
     session_start();
