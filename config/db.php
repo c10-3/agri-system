@@ -31,3 +31,11 @@ try {
     error_log($e->getMessage());
     die('Database connection failed.');
 }
+
+if (!function_exists('get_pdo')) {
+    function get_pdo(): PDO
+    {
+        global $pdo;
+        return $pdo;
+    }
+}
