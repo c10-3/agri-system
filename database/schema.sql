@@ -59,8 +59,8 @@ CREATE TABLE farmer (
     farmer_id        INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     first_name       VARCHAR(50)  NOT NULL,
     last_name        VARCHAR(50)  NOT NULL,
-    contact_number   VARCHAR(20)  UNIQUE,
-    address          VARCHAR(255),
+    contact_number   VARCHAR(20)  NOT NULL UNIQUE,
+    address          VARCHAR(255) NOT NULL,
     date_registered  DATE NOT NULL DEFAULT CURRENT_DATE,
     created_at       TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at       TIMESTAMPTZ NOT NULL DEFAULT NOW()
@@ -69,11 +69,11 @@ CREATE TABLE farmer (
 CREATE TABLE farm (
     farm_id        INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     farmer_id      INT NOT NULL REFERENCES farmer(farmer_id) ON DELETE RESTRICT,
-    soil_type_id   INT REFERENCES soil_type(soil_type_id) ON DELETE RESTRICT,
-    irrigation_id  INT REFERENCES irrigation_type(irrigation_id) ON DELETE RESTRICT,
+    soil_type_id   INT NOT NULL REFERENCES soil_type(soil_type_id) ON DELETE RESTRICT,
+    irrigation_id  INT NOT NULL REFERENCES irrigation_type(irrigation_id) ON DELETE RESTRICT,
     farm_name      VARCHAR(100) NOT NULL,
     location       VARCHAR(255) NOT NULL,
-    area_hectares  NUMERIC(10,2) CHECK (area_hectares > 0),
+    area_hectares  NUMERIC(10,2) NOT NULL CHECK (area_hectares > 0),
     created_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at     TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (farmer_id, farm_name)
@@ -81,11 +81,11 @@ CREATE TABLE farm (
 
 CREATE TABLE crop (
     crop_id              INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    category_id          INT REFERENCES crop_category(category_id) ON DELETE RESTRICT,
-    season_id            INT REFERENCES season(season_id) ON DELETE RESTRICT,
+    category_id          INT NOT NULL REFERENCES crop_category(category_id) ON DELETE RESTRICT,
+    season_id            INT NOT NULL REFERENCES season(season_id) ON DELETE RESTRICT,
     crop_name            VARCHAR(100) NOT NULL,
     variety              VARCHAR(100),
-    growing_period_days  INT CHECK (growing_period_days > 0),
+    growing_period_days  INT NOT NULL CHECK (growing_period_days > 0),
     created_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at           TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     UNIQUE (crop_name, variety)
@@ -97,8 +97,8 @@ CREATE TABLE planting (
     crop_id                INT NOT NULL REFERENCES crop(crop_id) ON DELETE RESTRICT,
     status_id              INT NOT NULL DEFAULT 1 REFERENCES planting_status(status_id) ON DELETE RESTRICT,
     planting_date          DATE NOT NULL,
-    area_planted           NUMERIC(10,2) CHECK (area_planted > 0),
-    seed_quantity          NUMERIC(10,2) CHECK (seed_quantity >= 0),
+    area_planted           NUMERIC(10,2) NOT NULL CHECK (area_planted > 0),
+    seed_quantity          NUMERIC(10,2) NOT NULL CHECK (seed_quantity >= 0),
     expected_harvest_date  DATE,
     created_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at             TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -109,11 +109,11 @@ CREATE TABLE planting (
 CREATE TABLE harvest (
     harvest_id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     planting_id           INT NOT NULL REFERENCES planting(planting_id) ON DELETE RESTRICT,
-    grade_id              INT REFERENCES quality_grade(grade_id) ON DELETE RESTRICT,
+    grade_id              INT NOT NULL REFERENCES quality_grade(grade_id) ON DELETE RESTRICT,
     remark_id             INT NOT NULL REFERENCES harvest_remark(remark_id) ON DELETE RESTRICT,
     harvest_date          DATE NOT NULL,
     quantity_kg           NUMERIC(10,2) NOT NULL CHECK (quantity_kg > 0),
-    selling_price_per_kg  NUMERIC(10,2) CHECK (selling_price_per_kg >= 0),
+    selling_price_per_kg  NUMERIC(10,2) NOT NULL CHECK (selling_price_per_kg >= 0),
     created_at            TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at            TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
